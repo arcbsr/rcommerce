@@ -9,10 +9,11 @@ process.on("uncaughtException",(err) =>{
 })
 
 // config
-if(process.env.NODE_ENV!=="PRODUCTION"){
-require("dotenv").config({
-    path:"./backend/config/.env"
-})}
+// if(process.env.NODE_ENV!=="PRODUCTION"){
+// require("dotenv").config({
+//     path:"./backend/config/.env"
+// })}
+require("dotenv").config();
 // connect database
 connectDatabase();
 
