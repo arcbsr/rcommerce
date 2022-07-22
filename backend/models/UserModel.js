@@ -62,7 +62,7 @@ userSchema.pre("save", async function (next) {
 
 // jwt token
 userSchema.methods.getJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
+  return jwt.sign({ id: this._id }, "bezkoder-secret-key", {
     expiresIn:  process.env.JWT_EXPIRES,
   });
 };
