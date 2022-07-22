@@ -16,25 +16,26 @@ class Features {
             : {
 
             }
-        const myArray = this.queryStr.queryStr.split(" ");
-        if (myArray.length > 0) {
-            var regex = new RegExp(myArray[0], 'i');
+        if (this.queryStr.queryStr) {
+            const myArray = this.queryStr.queryStr.split(" ");
+            if (myArray.length > 0) {
+                var regex = new RegExp(myArray[0], 'i');
 
+            }
+            if (myArray.length > 1) {
+                var regex2 = new RegExp(myArray[1], 'i');
+            }
+            if (myArray.length > 1) {
+                this.query = this.query.find({
+                    $or: [{ name: regex }, { description: regex }, { "config.name": regex },
+                    { name: regex2 }, { description: regex2 }, { "config.name": regex2 }]
+                });
+            } else {
+                this.query = this.query.find({
+                    $or: [{ name: regex }, { description: regex }, { "config.name": regex }]
+                });
+            }
         }
-        if (myArray.length > 1) {
-            var regex2 = new RegExp(myArray[1], 'i');
-        }
-        if (myArray.length > 1) {
-            this.query = this.query.find({
-                $or: [{ name: regex }, { description: regex }, { "config.name": regex },
-                { name: regex2 }, { description: regex2 }, { "config.name": regex2 }]
-            });
-        } else {
-            this.query = this.query.find({
-                $or: [{ name: regex }, { description: regex }, { "config.name": regex }]
-            });
-        }
-
         //this.query = this.query.find({ $or: [{ name: regex2 }, { description: regex2 }, { "config.name": regex2 }] });
         return this;
     }
