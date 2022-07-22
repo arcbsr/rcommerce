@@ -25,6 +25,7 @@ cloudinary.config({
 // create server
 const server = app.listen(process.env.PORT,() =>{
     console.log(`Server is working on http://157.230.45.140:${process.env.PORT}`)
+    console.error(`server listening on ${server.address().port}`);
 })
 
 
