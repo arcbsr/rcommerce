@@ -31,21 +31,33 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-    // images:[
-    //     {
-    //         public_id:{
-    //             type:String,
-    //             required:true,
-    //         },
-    //         url:{
-    //             type:String,
-    //             required:true,
-    //         },
-    //     }
-    // ],
+    avatar:[
+        {
+            public_id:{
+                type:String,
+                required:true,
+            },
+            url:{
+                type:String,
+                required:true,
+            },
+        }
+    ],
+    images:[
+        {
+            public_id:{
+                type:String,
+                required:true,
+            },
+            url:{
+                type:String,
+                required:true,
+            },
+        }
+    ],
     category:{
         type: String,
-        //required:[true,"Please add a category of your product"],
+        required:[true,"Please add a category of your product"],
     },
     Stock:{
         type: Number,
@@ -83,7 +95,7 @@ const productSchema = new mongoose.Schema({
   user:{
       type: mongoose.Schema.ObjectId,
       ref:"User",
-    //   required: true
+      required: true
   },
   createAt:{
       type:Date,

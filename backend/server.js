@@ -16,12 +16,16 @@ require("dotenv").config({
 // connect database
 connectDatabase();
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-})
-
+// cloudinary.config({
+//     cloud_name: process.env.CLOUDINARY_NAME,
+//     api_key: process.env.CLOUDINARY_API_KEY,
+//     api_secret: process.env.CLOUDINARY_API_SECRET
+// })
+cloudinary.config({ 
+    cloud_name: 'dlhgax0bc', 
+    api_key: '834963545329235', 
+    api_secret: 'fagZJ5ieNiTLZTRr2-2MufUQvco' 
+  });
 // create server  process.env.PORT
 const server = app.listen(801,() =>{
     console.log(`Server is working on http://localhost:${process.env.PORT}`)

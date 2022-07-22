@@ -6,17 +6,18 @@ const cloudinary = require("cloudinary");
 
 // create Product --Admin
 exports.createProduct = catchAsyncErrors(async (req, res, next) => {
-  let images = [];
-  // if (typeof req.body.images === "string") {
-  //   images.push(req.body.images);
+  
+  let images = req.files.avatar;
+  // if (typeof req.files.images === "string") {
+  //   images.push(req.files.images);
   // } else {
-  //   images = req.body.images;
+  //   images = req.files.images;
   // }
-
-  // const imagesLinks = [];
-
+  const imagesLinks = [];
+  // var total = -1;
   // for (let i = 0; i < images.length; i++) {
-  //   const result = await cloudinary.v2.uploader.upload(images[i], {
+  //   total++;
+  //   const result = await cloudinary.v2.uploader.upload(images[i].tempFilePath, {
   //     folder: "products",
   //   });
 
@@ -25,8 +26,21 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
   //     url: result.secure_url,
   //   });
   // }
+  const result = await cloudinary.v2.uploader.upload(req.files.avatar.tempFilePath, {
+    folder: "products",
+  });
+  imagesLinks.push({
+        public_id: result.public_id,
+        url: result.secure_url,
+      });
+  // //url: result.secure_url,
+  // res.status(201).json({
+  //   success: true,
+  //   product: imagesLinks,
+  //   product2: images.tempFilePath
+  // });
 
-  //req.body.images = imagesLinks;
+  req.body.avatar = imagesLinks;
   req.body.user = req.user.id;
 
   const product = await Product.create(req.body);
@@ -49,7 +63,7 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
 
 // get All Products
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
-  const resultPerPage = 8;
+  const resultPerPage = 18;
 
   const productsCount = await Product.countDocuments();
 
