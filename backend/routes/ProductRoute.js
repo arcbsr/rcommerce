@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getAllProducts,
   createProduct,
+  createProductConfig,
   updateProduct,
   deleteProduct,
   getSingleProduct,
@@ -25,10 +26,14 @@ router
 
 router
   .route("/product/:id")
+  .put(isAuthenticatedUser, authorizeRoles("admin"), createProductConfig)
+  .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
+  .get(getSingleProduct);
+  router
+  .route("/product/config/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateProduct)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(getSingleProduct);
-
 router.route("/product/review").post(isAuthenticatedUser, createProductReview);
 
 router

@@ -11,16 +11,38 @@ const productSchema = new mongoose.Schema({
         type:String,
         required:[true, "Please add a description of your product"],
         maxlength:[4000,"Description is can not exceed than 4000 characters"]
-    },
-    price:{
-        type:Number,
-        required: [true, "Please add a price for your product"],
-        maxLength:[8, "Price can not exceed than 8 characters"],
-    },
-    offerPrice:{
-        type:String,
-        maxLength: [4, "Discount price can not exceed than 4 characters"],
-    },
+    },config:[
+        {
+            name:{
+                type: String,
+                required: true,
+            },
+            price:{
+                type: Number,
+                required: true,
+            },
+            stock:{
+                type: Number,
+                required: true,
+            },offer:{
+                type: String,
+                maxLength: [400, "Discount price can not exceed than 4 characters"],
+            },
+            time:{
+                type: Date,
+                default: Date.now()
+            },
+        },
+    ],
+    // price:{
+    //     type:Number,
+    //     required: [true, "Please add a price for your product"],
+    //     maxLength:[8, "Price can not exceed than 8 characters"],
+    // },
+    // offerPrice:{
+    //     type:String,
+    //     maxLength: [4, "Discount price can not exceed than 4 characters"],
+    // },
     color:{
         type: String,
     },
@@ -59,11 +81,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         required:[true,"Please add a category of your product"],
     },
-    Stock:{
-        type: Number,
-        required:[true,"Please add some stoke for your product"],
-        maxLength: [3, "Stock can not exceed than 3 characters"],
-    },
+    // Stock:{
+    //     type: Number,
+    //     required:[true,"Please add some stoke for your product"],
+    //     maxLength: [3, "Stock can not exceed than 3 characters"],
+    // },
   numOfReviews:{
       type: Number,
       default: 0
