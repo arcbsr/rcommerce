@@ -1,6 +1,7 @@
 const app = require("./app");
 const connectDatabase = require("./db/Database.js");
 const cloudinary = require("cloudinary");
+const dotenv = require('dotenv');
 
 // Handling uncaught Exception
 process.on("uncaughtException",(err) =>{
@@ -13,7 +14,9 @@ process.on("uncaughtException",(err) =>{
 // require("dotenv").config({
 //     path:"./backend/config/.env"
 // })}
-require("dotenv").config();
+
+// Set up Global configuration access
+dotenv.config();
 // connect database
 connectDatabase();
 
