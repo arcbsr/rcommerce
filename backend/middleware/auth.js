@@ -2,18 +2,18 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../models/UserModel");
-
+const config = require("../config/auth.config.js");
 
 exports.isAuthenticatedUser = catchAsyncErrors(async (req,res,next) =>{
-    // const { token } = req.cookies;
-    let token = req.headers["x-access-token"];
+    const { token } = req.cookies;
+    // let token = req.headers["x-access-token"];
     let jwtSecretKey = process.env.JWT_SECRET_KEY;
   if (!token) {
     return next(new ErrorHandler("Please Login for access this resource", 401));
   }
   //const token = req.header(tokenHeaderKey);
   
-  const decodedData = jwt.verify(token, "bezkoder-secret-key");
+  const decodedData = jwt.verify(token, config.secret);
 
   req.user = await User.findById(decodedData.id);
 
