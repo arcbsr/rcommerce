@@ -3,6 +3,7 @@ const {
   getAllProducts,
   createProduct,
   createProductConfig,
+  productUpd,
   updateProduct,
   deleteProduct,
   getSingleProduct,
@@ -23,13 +24,15 @@ router
 router
   .route("/product/new")
   .post(isAuthenticatedUser, authorizeRoles("admin"), createProduct);
-
+router
+  .route("/product/update/:id")
+  .put(isAuthenticatedUser, authorizeRoles("admin"), productUpd);
 router
   .route("/product/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), createProductConfig)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(getSingleProduct);
-  router
+router
   .route("/product/config/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateProduct)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)

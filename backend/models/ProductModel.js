@@ -45,6 +45,10 @@ const productSchema = new mongoose.Schema({
     // },
     color:{
         type: String,
+    },imagethumb:{
+        type: String,
+    },brand:{
+        type: String,
     },
     size:{
         type: String,
@@ -124,5 +128,11 @@ const productSchema = new mongoose.Schema({
       default: Date.now()
   }
 })
-
+//hide fields
+productSchema.methods.toJSON = function() {
+    var obj = this.toObject();
+    delete obj.__v;
+    //delete obj.avatar;
+    return obj;
+   }
 module.exports = mongoose.model("Product",productSchema);
