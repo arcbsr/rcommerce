@@ -4,15 +4,19 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/UserModel");
 const config = require("../config/auth.config.js");
 
-exports.isAuthenticatedUser = catchAsyncErrors(async (req,res,next) =>{
-    const { token } = req.cookies;
-    // let token = req.headers["x-access-token"];
-    let jwtSecretKey = process.env.JWT_SECRET_KEY;
+exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
+  // res.status(201).json({
+  //   success: req.headers,
+
+  // });
+  // return;
+  // const { token } = req.cookies;
+  let token = req.headers["authorization"];
+  let jwtSecretKey = process.env.JWT_SECRET_KEY;
   if (!token) {
     return next(new ErrorHandler("Please Login for access this resource", 401));
   }
-  //const token = req.header(tokenHeaderKey);
-  
+
   const decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
   req.user = await User.findById(decodedData.id);
@@ -21,11 +25,11 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req,res,next) =>{
 });
 
 // Admin Roles
-exports.authorizeRoles = (...roles) =>{
-    return (req,res,next) =>{
-        if(!roles.includes(req.user.role)){
-          return next(new ErrorHandler(`${req.user.role} can not access this resources`));
-        };
-        next();
-    }
+exports.authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(new ErrorHandler(`${req.user.role} can not access this resources`));
+    };
+    next();
+  }
 }

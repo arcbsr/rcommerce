@@ -19,7 +19,7 @@ module.exports = (err,req,res,next) =>{
 
      // Wrong Jwt error
      if (err.name === "JsonWebTokenError") {
-     const message = `Your url is invalid please try again`;
+     const message = `Access Denied!!! Please Login`;
      err = new ErrorHandler(message, 400);
      }
 

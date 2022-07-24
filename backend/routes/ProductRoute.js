@@ -12,11 +12,11 @@ const {
   deleteReview,
   getAdminProducts,
 } = require("../controller/ProductController");
-const { createCategory, updateCategory, getAllCategory,SubCatByID, addSubCat } = require("../controller/CategoryController");
+const { createCategory, updateCategory, getAllCategory, SubCatByID, addSubCat } = require("../controller/CategoryController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const router = express.Router();
 
-router.route("/products").get(getAllProducts);
+router.route("/products").get(isAuthenticatedUser, getAllProducts);
 
 router
   .route("/admin/products")
@@ -54,7 +54,7 @@ router
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateCategory)
   //.delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(SubCatByID);
-   
+
 router
   .route("/subcat/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), addSubCat)
