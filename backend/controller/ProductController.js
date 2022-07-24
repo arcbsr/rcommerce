@@ -55,6 +55,7 @@ exports.createProductConfig = catchAsyncErrors(async (req, res, next) => {
     stock: req.body.stock,
     offer: req.body.offer,
     _id: req.body._id,
+    user: req.user.id
   };
   if (req.body._id) {
     var conf = product.config.filter(
@@ -75,7 +76,17 @@ exports.createProductConfig = catchAsyncErrors(async (req, res, next) => {
   } else {
     product.config.push(confige);
   }
-  product.config.push(confige);
+  var minPrice = Number.MAX_SAFE_INTEGER, maxPrice = 0;
+  for (i = 0; i < product.config.length; i++) {
+    if (product.config[i].price < minPrice) {
+      minPrice = product.config[i].price;
+    }
+    if (product.config[i].price > maxPrice) {
+      maxPrice = product.config[i].price;
+    }
+  }
+  product.minprice = minPrice;
+  product.maxprice = maxPrice;
   data = await product.save({ validateBeforeSave: false });
 
 
@@ -152,13 +163,9 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
 
 // get All Products
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
-  const resultPerPage = 2;
-  //?str=Force&page=3&n=5
-  //const productsCount = await Product.countDocuments();
-  // $or: [{ name: regex }, { description: regex }, { tags: regex }, { "config.name": regex },
-  //                   { name: regex2 }, { description: regex2 }, { tags: regex2 }, { "config.name": regex2 }]
-
+  
   var strData = req.query.str || "";
+  //var brand = req.query.brand || "";
   const keys = strData.split(" ");
   var srcqry = {
     $or: [
@@ -166,6 +173,8 @@ exports.getAllProducts = catchAsyncErrors(async (req, res) => {
       // { description: { $regex: '.*' + strData + '.*' } },
       // { name: { $regex: '.*' + strData + '.*' } },
       // { "config.name": { $regex: '.*' + strData + '.*' } }
+    ], $and: [
+
     ]
   };
   const searchfrom = ["tags", "description", "name", "config.name"];
@@ -178,23 +187,46 @@ exports.getAllProducts = catchAsyncErrors(async (req, res) => {
 
 
   }
-  // srcqry.$or.push({ tags: { $regex: '.*' + strData + '.*' } });
+  if (req.query.brand) {
+    srcqry.$and.push({ brand: { $regex: req.query.brand, $options: "i" } });
+  }
+  if (req.query.subcat) {
+    srcqry.$and.push({ subcategory: { $regex: req.query.subcat, $options: "i" } });
+  }
+  if (req.query.category) {
+    srcqry.$and.push({ category: { $regex: req.query.category, $options: "i" } });
+  }
+  if (req.query.pricemin) {
+    srcqry.$and.push({ maxprice: { $gte: req.query.pricemin } });
+  }
+  if (req.query.pricemax) {
+    srcqry.$and.push({ maxprice: { $lte: req.query.pricemax } });
+  }
+
+  if (srcqry.$and.length == 0) {
+    srcqry.$and.push({});
+  }
+
+  if (srcqry.$or.length == 0) {
+    srcqry.$or.push({});
+  }
   const total = await Product.countDocuments(srcqry);
 
   //var start = parseInt(req.query.start || 0, 10);
   var limit = parseInt(req.query.n || total, 10);
   var currentPage = parseInt(req.query.page || 0, 10);
   const products = await Product.find(srcqry).skip(currentPage * limit).limit(limit);
-  var totalPage = parseInt(Math.ceil(total / limit), 10);
+  var totalPage = parseInt(Math.ceil(total / limit), 10) || 0;
   var isNextPage = (currentPage + 1) >= totalPage ? false : true;
- 
+
+
   res.status(200).json({
     success: true,
     total,
     totalPage,
     currentPage, limit, nextpage: isNextPage,
     products,
-    //resultPerPage,
+    size: products.length,
   });
 });
 

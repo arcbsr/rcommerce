@@ -1,95 +1,98 @@
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true, "Please enter a name of a product"],
+    name: {
+        type: String,
+        required: [true, "Please enter a name of a product"],
         trim: true,
-        maxLength:[30, "Product name not exceed than 30 characters"]
+        maxLength: [30, "Product name not exceed than 30 characters"]
     },
-    description:{
-        type:String,
-        required:[true, "Please add a description of your product"],
-        maxlength:[4000,"Description is can not exceed than 4000 characters"]
-    },category:{
-        type:String,
-        required:[true, "Please add a category of your product"],
-        maxlength:[400,"category is can not exceed than 400 characters"]
-    },subcategory:{
-        type:String,
-        required:[true, "Please add a subcategory of your product"],
-        maxlength:[400,"subcategory is can not exceed than 400 characters"]
-    },tags:{
-        type:String,
-        required:[false, "Please add a tags of your product"],
-        maxlength:[400,"tags is can not exceed than 400 characters"]
-    },config:[
+    description: {
+        type: String,
+        required: [true, "Please add a description of your product"],
+        maxlength: [4000, "Description is can not exceed than 4000 characters"]
+    }, category: {
+        type: String,
+        required: [true, "Please add a category of your product"],
+        maxlength: [400, "category is can not exceed than 400 characters"]
+    }, subcategory: {
+        type: String,
+        required: [true, "Please add a subcategory of your product"],
+        maxlength: [400, "subcategory is can not exceed than 400 characters"]
+    }, tags: {
+        type: String,
+        required: [false, "Please add a tags of your product"],
+        maxlength: [400, "tags is can not exceed than 400 characters"]
+    }, config: [
         {
-            name:{
+            name: {
                 type: String,
                 required: true,
             },
-            price:{
+            price: {
                 type: Number,
                 required: true,
             },
-            stock:{
+            stock: {
                 type: Number,
                 required: true,
-            },offer:{
+            }, offer: {
                 type: String,
                 maxLength: [400, "Discount price can not exceed than 4 characters"],
             },
-            time:{
+            time: {
                 type: Date,
                 default: Date.now()
-            },
+            }, user: {
+                type: mongoose.Schema.ObjectId,
+                ref: "User",
+                required: true
+            }
         },
+
     ],
-    // price:{
-    //     type:Number,
-    //     required: [true, "Please add a price for your product"],
-    //     maxLength:[8, "Price can not exceed than 8 characters"],
-    // },
-    // offerPrice:{
-    //     type:String,
-    //     maxLength: [4, "Discount price can not exceed than 4 characters"],
-    // },
-    color:{
+    minprice: {
+        type: Number,
+        expires: "1m"
+    },
+    maxprice: {
+        type: Number,
+    },
+    color: {
         type: String,
-    },imagethumb:{
+    }, imagethumb: {
         type: String,
-    },brand:{
+    }, brand: {
         type: String,
     },
-    size:{
+    size: {
         type: String,
     },
-    ratings:{
+    ratings: {
         type: Number,
         default: 0,
     },
-    avatar:[
+    avatar: [
         {
-            public_id:{
-                type:String,
-                required:true,
+            public_id: {
+                type: String,
+                required: true,
             },
-            url:{
-                type:String,
-                required:true,
+            url: {
+                type: String,
+                required: true,
             },
         }
     ],
-    images:[
+    images: [
         {
-            public_id:{
-                type:String,
-                required:true,
+            public_id: {
+                type: String,
+                required: true,
             },
-            url:{
-                type:String,
-                required:true,
+            url: {
+                type: String,
+                required: true,
             },
         }
     ],
@@ -102,50 +105,49 @@ const productSchema = new mongoose.Schema({
     //     required:[true,"Please add some stoke for your product"],
     //     maxLength: [3, "Stock can not exceed than 3 characters"],
     // },
-  numOfReviews:{
-      type: Number,
-      default: 0
-  },
-  reviews:[
-      {
-          user: {
-              type:mongoose.Schema.ObjectId,
-              ref:"User",
-              required: true,
-          },
-          name:{
-              type: String,
-              required: true,
-          },
-          rating:{
-              type: Number,
-              required: true,
-          },
-          comment:{
-              type:String,
-          },
-          time:{
-              type: Date,
-              default: Date.now()
-          },
-      },
-  ],
-  user:{
-      type: mongoose.Schema.ObjectId,
-      ref:"User",
-      required: true
-  },
-  createAt:{
-      type:Date,
-      default: Date.now()
-  }
+    numOfReviews: {
+        type: Number,
+        default: 0
+    },
+    reviews: [
+        {
+            user: {
+                type: mongoose.Schema.ObjectId,
+                ref: "User",
+                required: true,
+            },
+            name: {
+                type: String,
+                required: true,
+            },
+            rating: {
+                type: Number,
+                required: true,
+            },
+            comment: {
+                type: String,
+            },
+            time: {
+                type: Date,
+                default: Date.now()
+            },
+        },
+    ],
+    user: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+        required: true
+    },
+    createAt: {
+        type: Date,
+        default: Date.now()
+    }
 })
 //hide fields
-productSchema.methods.toJSON = function() {
+productSchema.methods.toJSON = function () {
     var obj = this.toObject();
     delete obj.__v;
     delete obj.reviews;
-    //delete obj.avatar;
     return obj;
-   }
-module.exports = mongoose.model("Product",productSchema);
+}
+module.exports = mongoose.model("Product", productSchema);
