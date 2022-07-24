@@ -12,6 +12,7 @@ const {
   deleteReview,
   getAdminProducts,
 } = require("../controller/ProductController");
+const { createCategory, updateCategory, getAllCategory,SubCatByID, addSubCat } = require("../controller/CategoryController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router
 router
   .route("/product/new")
   .post(isAuthenticatedUser, authorizeRoles("admin"), createProduct);
+
 router
   .route("/product/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), productUpd);
@@ -32,12 +34,32 @@ router
   .put(isAuthenticatedUser, authorizeRoles("admin"), createProductConfig)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(getSingleProduct);
+
 router
   .route("/product/config/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateProduct)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(getSingleProduct);
 router.route("/product/review").post(isAuthenticatedUser, createProductReview);
+
+router
+  .route("/category/new")
+  .post(isAuthenticatedUser, authorizeRoles("admin"), createCategory);
+
+router.route("/categories").get(getAllCategory);
+
+
+router
+  .route("/category/:id")
+  .put(isAuthenticatedUser, authorizeRoles("admin"), updateCategory)
+  //.delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
+  .get(SubCatByID);
+   
+router
+  .route("/subcat/:id")
+  .put(isAuthenticatedUser, authorizeRoles("admin"), addSubCat)
+  //.delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
+  .get(getSingleProduct);
 
 router
   .route("/reviews")

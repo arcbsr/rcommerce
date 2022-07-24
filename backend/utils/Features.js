@@ -27,12 +27,12 @@ class Features {
             }
             if (myArray.length > 1) {
                 this.query = this.query.find({
-                    $or: [{ name: regex }, { description: regex }, { "config.name": regex },
-                    { name: regex2 }, { description: regex2 }, { "config.name": regex2 }]
+                    $or: [{ name: regex }, { description: regex }, { tags: regex }, { "config.name": regex },
+                    { name: regex2 }, { description: regex2 }, { tags: regex2 }, { "config.name": regex2 }]
                 });
             } else {
                 this.query = this.query.find({
-                    $or: [{ name: regex }, { description: regex }, { "config.name": regex }]
+                    $or: [{ name: regex }, { description: regex }, { tags: regex }, { "config.name": regex }]
                 });
             }
         }

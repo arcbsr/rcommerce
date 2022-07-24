@@ -1,4 +1,5 @@
 const Product = require("../models/ProductModel.js");
+const Category = require("../models/CategoryModel.js");
 const ErrorHandler = require("../utils/ErrorHandler.js");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Features = require("../utils/Features");
@@ -8,6 +9,7 @@ const cloudinary = require("cloudinary");
 exports.createProduct = catchAsyncErrors(async (req, res, next) => {
 
   const imagesLinks = [];
+
   var newBody = {
     ...req.body
   }
@@ -21,8 +23,20 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     });
   }
   req.body.user = req.user.id;
+  var tags = "";
+  const category = await Category.findById(req.body.category);
+  if (category) {
+    var sub = category.subcategory.filter(
+      (sub) => sub._id.toString() == req.body.subcategory
+    );
+    tags = category.name;
+    if (sub.length > 0) {
+      tags = tags + " " + sub[0].name;
+    }
+  }
   newBody = {
-    avatar : imagesLinks,
+    tags: tags,
+    avatar: imagesLinks,
     ...req.body
   }
   //req.body.avatar = imagesLinks;
@@ -44,9 +58,22 @@ exports.createProductConfig = catchAsyncErrors(async (req, res, next) => {
   };
   if (req.body._id) {
     var conf = product.config.filter(
-      (con) => con._id.toString() !== req.body._id
+      (con) => con._id.toString() == req.body._id
     );
-    product.config = conf;
+    //product.config = conf;
+    if (conf.length > 0) {
+      for (i = 0; i < conf.length; i++) {
+        for (j = 0; j < product.config.length; j++) {
+          if (product.config[j]._id === conf[i]._id) {
+            product.config[j] = confige;
+          }
+        }
+      }
+    } else {
+      product.config.push(confige);
+    }
+  } else {
+    product.config.push(confige);
   }
   product.config.push(confige);
   data = await product.save({ validateBeforeSave: false });
@@ -65,8 +92,19 @@ exports.productUpd = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Product is not found with this id", 404));
   }
   let images = [];
-
-  newBody = {
+  var tags = "";
+  const category = await Category.findById(product.category);
+  if (category) {
+    var sub = category.subcategory.filter(
+      (sub) => sub._id.toString() == product.subcategory
+    );
+    tags = category.name;
+    if (sub.length > 0) {
+      tags = tags + " " + sub[0].name;
+    }
+  }
+  var newBody = {
+    tags: tags,
     ...req.body
   }
   if (req.files && req.files.images) {
@@ -114,26 +152,49 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
 
 // get All Products
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
-  const resultPerPage = 12;
-  //?page=1...
-  const productsCount = await Product.countDocuments();
-  const feature = new Features(Product.find()
-    .select('name config avatar brand')
-    , req.query)
-    .search()
-    .filter()
-    .pagination(resultPerPage);
-  const products = await feature.query;
-  for (i = 0; i < products.length; i++) {
-    if (products[i].avatar.length > 0) {
-      products[i].imagethumb = products[i].avatar[0].url;
-    }
+  const resultPerPage = 2;
+  //?str=Force&page=3&n=5
+  //const productsCount = await Product.countDocuments();
+  // $or: [{ name: regex }, { description: regex }, { tags: regex }, { "config.name": regex },
+  //                   { name: regex2 }, { description: regex2 }, { tags: regex2 }, { "config.name": regex2 }]
+
+  var strData = req.query.str || "";
+  const keys = strData.split(" ");
+  var srcqry = {
+    $or: [
+      // { tags: { $regex: '.*' + strData + '.*' } },
+      // { description: { $regex: '.*' + strData + '.*' } },
+      // { name: { $regex: '.*' + strData + '.*' } },
+      // { "config.name": { $regex: '.*' + strData + '.*' } }
+    ]
+  };
+  const searchfrom = ["tags", "description", "name", "config.name"];
+  for (i = 0; i < keys.length; i++) {
+    srcqry.$or.push({ tags: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+    srcqry.$or.push({ description: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+    srcqry.$or.push({ name: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+    srcqry.$or.push({ "config.name": { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+    srcqry.$or.push({ brand: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+
+
   }
+  // srcqry.$or.push({ tags: { $regex: '.*' + strData + '.*' } });
+  const total = await Product.countDocuments(srcqry);
+
+  //var start = parseInt(req.query.start || 0, 10);
+  var limit = parseInt(req.query.n || total, 10);
+  var currentPage = parseInt(req.query.page || 0, 10);
+  const products = await Product.find(srcqry).skip(currentPage * limit).limit(limit);
+  var totalPage = parseInt(Math.ceil(total / limit), 10);
+  var isNextPage = (currentPage + 1) >= totalPage ? false : true;
+ 
   res.status(200).json({
     success: true,
+    total,
+    totalPage,
+    currentPage, limit, nextpage: isNextPage,
     products,
-    productsCount,
-    resultPerPage,
+    //resultPerPage,
   });
 });
 
