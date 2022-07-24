@@ -2,7 +2,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../models/UserModel");
-const config = require("../config/auth.config.js");
+//const config = require("../config/auth.config.js");
 
 exports.isAuthenticatedUser = catchAsyncErrors(async (req,res,next) =>{
     const { token } = req.cookies;
@@ -13,7 +13,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req,res,next) =>{
   }
   //const token = req.header(tokenHeaderKey);
   
-  const decodedData = jwt.verify(token, config.secret);
+  const decodedData = jwt.verify(token, jwtSecretKey);//config.secret);
 
   req.user = await User.findById(decodedData.id);
 
