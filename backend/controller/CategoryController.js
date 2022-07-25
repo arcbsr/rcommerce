@@ -1,6 +1,13 @@
 const Category = require("../models/CategoryModel.js");
+const SubCategory = require("../models/SubCategoryModel.js");
 const ErrorHandler = require("../utils/ErrorHandler.js");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+
+var subCategoryPopulateModule =
+{
+    path: 'category',
+    select: 'name'
+}
 
 exports.createCategory = catchAsyncErrors(async (req, res, next) => {
 
@@ -35,6 +42,15 @@ exports.getAllCategory = catchAsyncErrors(async (req, res) => {
         categories
     });
 });
+exports.getSubCategoryByid = catchAsyncErrors(async (req, res) => {
+    var subCategories = [];
+    subCategories = await SubCategory.find({ category: req.params.id }).populate(subCategoryPopulateModule);
+
+    res.status(200).json({
+        success: true,
+        subCategories
+    });
+});
 exports.SubCatByID = catchAsyncErrors(async (req, res, next) => {
     const categories = await Category.findById(req.params.id);
     res.status(200).json({
@@ -46,38 +62,26 @@ exports.addSubCat = catchAsyncErrors(async (req, res, next) => {
     if (!req.body || !req.body.name) {
         return next(new ErrorHandler("Empty Subcategory name", 500));
     }
-    const category = await Category.findById(req.params.id);
-
-    if (!category) {
-        return next(new ErrorHandler("Category is not found with this id", 404));
-    }
-    const subcat = {
-        name: req.body.name,
-        _id: req.body._id,
-    };
+    req.body.category = req.params.id;
     if (req.body._id) {
-        var sub = category.subcategory.filter(
-            (sub) => sub._id.toString() == req.body._id
-        );
-        if (sub.length > 0) {
-            for (i = 0; i < sub.length; i++) {
-                for (j = 0; j < category.subcategory.length; j++) {
-                    if (category.subcategory[j]._id === sub[i]._id) {
-                        category.subcategory[j].name = req.body.name;
-                    }
-                }
-            }
-        }else {
-            category.subcategory.push(subcat);
+        let subcatDb = await SubCategory.findById(req.body._id);
+        if (!subcatDb) {
+            return next(new ErrorHandler("SubCategory is not found with this id", 404));
         }
+        const subCategory = await SubCategory.findByIdAndUpdate(req.body._id, req.body, {
+            new: true,
+            upsert: true,
+        });
+
+        res.status(200).json({
+            success: true,
+            subCategory,
+        });
     } else {
-        category.subcategory.push(subcat);
+        const subcat = await SubCategory.create(req.body);
+        res.status(200).json({
+            success: true,
+            subcat,
+        });
     }
-    data = await category.save({ validateBeforeSave: false });
-
-
-    res.status(201).json({
-        success: true,
-        data,
-    });
 });

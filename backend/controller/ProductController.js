@@ -4,15 +4,30 @@ const ErrorHandler = require("../utils/ErrorHandler.js");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Features = require("../utils/Features");
 const cloudinary = require("cloudinary");
+var categoryPopulateModule =
+{
+  path: 'subcat',
+  select: 'name',
+  populate: {
 
+    path: 'category',
+    select: 'name'
+
+  }
+}
+var userPopulateModule =
+{
+  path: 'user',
+  select: 'name'
+}
 // create Product --Admin
 exports.createProduct = catchAsyncErrors(async (req, res, next) => {
 
-  const imagesLinks = [];
 
   var newBody = {
     ...req.body
   }
+  const imagesLinks = [];
   if (req.files && req.files.avatar) {
     const result = await cloudinary.v2.uploader.upload(req.files.avatar.tempFilePath, {
       folder: "products/thumb",
@@ -24,65 +39,59 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
   }
   req.body.user = req.user.id;
   var tags = "";
-  const category = await Category.findById(req.body.category);
-  if (category) {
-    var sub = category.subcategory.filter(
-      (sub) => sub._id.toString() == req.body.subcategory
-    );
-    tags = category.name;
-    if (sub.length > 0) {
-      tags = tags + " " + sub[0].name;
-    }
+  if (!req.body.subcategory) {
+    return next(new ErrorHandler("subcategory is not found", 404));
   }
+  req.body.subcat = req.body.subcategory;
   newBody = {
     tags: tags,
     avatar: imagesLinks,
     ...req.body
   }
-  //req.body.avatar = imagesLinks;
   const product = await Product.create(newBody);
   res.status(200).json({
     success: true,
     product,
   });
 });
-exports.createProductConfig = catchAsyncErrors(async (req, res, next) => {
+exports.createProductItem = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
   var data;
-  const confige = {
+  req.body.user = req.user.id;
+  const item = {
     name: req.body.name,
     price: req.body.price,
     stock: req.body.stock,
     offer: req.body.offer,
     _id: req.body._id,
-    user: req.user.id
+    user: req.body.user
   };
   if (req.body._id) {
-    var conf = product.config.filter(
+    var conf = product.items.filter(
       (con) => con._id.toString() == req.body._id
     );
     //product.config = conf;
     if (conf.length > 0) {
       for (i = 0; i < conf.length; i++) {
-        for (j = 0; j < product.config.length; j++) {
-          if (product.config[j]._id === conf[i]._id) {
-            product.config[j] = confige;
+        for (j = 0; j < product.items.length; j++) {
+          if (product.items[j]._id === conf[i]._id) {
+            product.items[j] = item;
           }
         }
       }
     } else {
-      product.config.push(confige);
+      product.items.push(req.body);
     }
   } else {
-    product.config.push(confige);
+    product.items.push(req.body);
   }
   var minPrice = Number.MAX_SAFE_INTEGER, maxPrice = 0;
-  for (i = 0; i < product.config.length; i++) {
-    if (product.config[i].price < minPrice) {
-      minPrice = product.config[i].price;
+  for (i = 0; i < product.items.length; i++) {
+    if (product.items[i].price < minPrice) {
+      minPrice = product.items[i].price;
     }
-    if (product.config[i].price > maxPrice) {
-      maxPrice = product.config[i].price;
+    if (product.items[i].price > maxPrice) {
+      maxPrice = product.items[i].price;
     }
   }
   product.minprice = minPrice;
@@ -92,7 +101,7 @@ exports.createProductConfig = catchAsyncErrors(async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    data,
+    product,
   });
 });
 
@@ -104,16 +113,9 @@ exports.productUpd = catchAsyncErrors(async (req, res, next) => {
   }
   let images = [];
   var tags = "";
-  const category = await Category.findById(product.category);
-  if (category) {
-    var sub = category.subcategory.filter(
-      (sub) => sub._id.toString() == product.subcategory
-    );
-    tags = category.name;
-    if (sub.length > 0) {
-      tags = tags + " " + sub[0].name;
-    }
-  }
+  // if (!req.body.subcategory) {
+  //   return next(new ErrorHandler("subcategory is not found", 404));
+  // }
   var newBody = {
     tags: tags,
     ...req.body
@@ -130,21 +132,43 @@ exports.productUpd = catchAsyncErrors(async (req, res, next) => {
       const result = await cloudinary.v2.uploader.upload(images[i].tempFilePath, {
         folder: "products/preview",
       });
-      imagesLinks.push({
+      if (result) {
+        imagesLinks.push({
+          public_id: result.public_id,
+          url: result.secure_url,
+        });
+      }
+    }
+    newBody.images = imagesLinks;
+  }
+  const avatarlink = [];
+  if (req.files && req.files.avatar) {
+    if (product.avatar.length > 0) {
+      const result = await cloudinary.v2.uploader.destroy(
+        product.avatar[0].public_id
+      );
+    }
+    const result = await cloudinary.v2.uploader.upload(req.files.avatar.tempFilePath, {
+      folder: "products/thumb",
+    });
+    if (result) {
+      avatarlink.push({
         public_id: result.public_id,
         url: result.secure_url,
       });
-    }
-    newBody = {
-      images: imagesLinks,
-      ...req.body
+      newBody.avatar = avatarlink;
     }
   }
-
+  // newBody = {
+  //   avatar: avatarlink,
+  //   images: imagesLinks,
+  //   ...req.body
+  // }
   data = await Product.findByIdAndUpdate(req.params.id, newBody, {
     new: true,
     upsert: true,
-  });
+  })
+  .populate(categoryPopulateModule).populate(userPopulateModule);
   res.status(200).json({
     success: true,
     data,
@@ -163,7 +187,7 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
 
 // get All Products
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
-  
+
   var strData = req.query.str || "";
   //var brand = req.query.brand || "";
   const keys = strData.split(" ");
@@ -177,21 +201,22 @@ exports.getAllProducts = catchAsyncErrors(async (req, res) => {
 
     ]
   };
-  const searchfrom = ["tags", "description", "name", "config.name"];
+  const searchfrom = ["tags", "description", "name", "items.name"];
   for (i = 0; i < keys.length; i++) {
     srcqry.$or.push({ tags: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
-    srcqry.$or.push({ description: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+    //srcqry.$or.push({ description: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
     srcqry.$or.push({ name: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
-    srcqry.$or.push({ "config.name": { $regex: '.*' + keys[i] + '.*', $options: "i" } });
+    srcqry.$or.push({ "items.name": { $regex: '.*' + keys[i] + '.*', $options: "i" } });
     srcqry.$or.push({ brand: { $regex: '.*' + keys[i] + '.*', $options: "i" } });
 
 
   }
   if (req.query.brand) {
-    srcqry.$and.push({ brand: { $regex: req.query.brand, $options: "i" } });
+    srcqry.$and.push({ brand: { '$regex': req.query.brand, $options: 'i' } });
   }
   if (req.query.subcat) {
-    srcqry.$and.push({ subcategory: { $regex: req.query.subcat, $options: "i" } });
+    // srcqry.$and.push({ subcategory: { $regex: req.query.subcat, $options: "i" } });
+    srcqry.$and.push({ subcat: req.query.subcat });
   }
   if (req.query.category) {
     srcqry.$and.push({ category: { $regex: req.query.category, $options: "i" } });
@@ -215,7 +240,9 @@ exports.getAllProducts = catchAsyncErrors(async (req, res) => {
   //var start = parseInt(req.query.start || 0, 10);
   var limit = parseInt(req.query.n || total, 10);
   var currentPage = parseInt(req.query.page || 0, 10);
-  const products = await Product.find(srcqry).skip(currentPage * limit).limit(limit);
+  const products = await Product.find(srcqry)
+    .populate(categoryPopulateModule).populate(userPopulateModule)
+    .skip(currentPage * limit).limit(limit);
   var totalPage = parseInt(Math.ceil(total / limit), 10) || 0;
   var isNextPage = (currentPage + 1) >= totalPage ? false : true;
 
@@ -281,7 +308,9 @@ exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
 
 // single Product details
 exports.getSingleProduct = catchAsyncErrors(async (req, res, next) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id)
+  .populate(categoryPopulateModule).populate(userPopulateModule);
+  //.populate("subcat");
   if (!product) {
     return next(new ErrorHandler("Product is not found with this id", 404));
   }
@@ -393,5 +422,3 @@ exports.deleteReview = catchAsyncErrors(async (req, res, next) => {
     success: true,
   });
 });
-
-// 

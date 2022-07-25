@@ -11,19 +11,26 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please add a description of your product"],
         maxlength: [4000, "Description is can not exceed than 4000 characters"]
-    }, category: {
-        type: String,
-        required: [true, "Please add a category of your product"],
-        maxlength: [400, "category is can not exceed than 400 characters"]
-    }, subcategory: {
-        type: String,
-        required: [true, "Please add a subcategory of your product"],
-        maxlength: [400, "subcategory is can not exceed than 400 characters"]
-    }, tags: {
+    }, 
+    subcat: {
+        type: mongoose.Schema.ObjectId,
+        ref: "SubCategory",
+        required: true
+    },
+    // category: {
+    //     type: String,
+    //     //required: [true, "Please add a category of your product"],
+    //     //maxlength: [400, "category is can not exceed than 400 characters"]
+    // }, subcategory: {
+    //     type: String,
+    //     //required: [true, "Please add a subcategory of your product"],
+    //     //maxlength: [400, "subcategory is can not exceed than 400 characters"]
+    // }, 
+    tags: {
         type: String,
         required: [false, "Please add a tags of your product"],
         maxlength: [400, "tags is can not exceed than 400 characters"]
-    }, config: [
+    }, items: [
         {
             name: {
                 type: String,
@@ -148,6 +155,9 @@ productSchema.methods.toJSON = function () {
     var obj = this.toObject();
     delete obj.__v;
     delete obj.reviews;
+    delete obj.ratings;
+    delete obj.createAt;
+    delete obj.numOfReviews;
     return obj;
 }
 module.exports = mongoose.model("Product", productSchema);

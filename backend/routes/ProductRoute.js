@@ -2,7 +2,7 @@ const express = require("express");
 const {
   getAllProducts,
   createProduct,
-  createProductConfig,
+  createProductItem ,
   productUpd,
   updateProduct,
   deleteProduct,
@@ -12,7 +12,7 @@ const {
   deleteReview,
   getAdminProducts,
 } = require("../controller/ProductController");
-const { createCategory, updateCategory, getAllCategory, SubCatByID, addSubCat } = require("../controller/CategoryController");
+const { createCategory, updateCategory, getAllCategory, SubCatByID, addSubCat, getSubCategoryByid } = require("../controller/CategoryController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const router = express.Router();
 
@@ -30,13 +30,13 @@ router
   .route("/product/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), productUpd);
 router
-  .route("/product/:id")
-  .put(isAuthenticatedUser, authorizeRoles("admin"), createProductConfig)
+  .route("/product/item/:id")
+  .post(isAuthenticatedUser, authorizeRoles("admin"), createProductItem)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(getSingleProduct);
 
 router
-  .route("/product/config/:id")
+  .route("/product/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateProduct)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
   .get(getSingleProduct);
@@ -57,9 +57,9 @@ router
 
 router
   .route("/subcat/:id")
-  .put(isAuthenticatedUser, authorizeRoles("admin"), addSubCat)
+  .post(isAuthenticatedUser, authorizeRoles("admin"), addSubCat)
   //.delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
-  .get(getSingleProduct);
+  .get(getSubCategoryByid);
 
 router
   .route("/reviews")
